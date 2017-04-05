@@ -121,7 +121,7 @@ class Server {
     let method = options.method;
     let path = options.path && compileRoute(options.path);
     let host = options.host && compileGlob(options.host);
-    return this.use(async function (req, res, next) {
+    return this.use(async (req, res, next) => {
       if (method && (req.method !== method)) return await next();
       if (host && !host(req.headers.get("Host"))) return await next();
       let params;
@@ -139,7 +139,7 @@ class Server {
       let server = createNetServer(socket => {
         this.onConnection(socket).catch(console.error)
       });
-      server.listen(binding, function () {
+      server.listen(binding, () => {
         console.log("Server listening on:", server.address());
       });
     }
@@ -185,7 +185,7 @@ class Server {
     let layer = this.layers[index];
     if (!layer) return;
     let self = this;
-    return await layer(req, res, async function() {
+    return await layer(req, res, async () => {
       return await self.runLayer(index + 1, req, res);
     });
   }
@@ -275,10 +275,10 @@ function files(root) {
   let m = module;
   while (m.parent) m = m.parent;
   if (root[0] !== '/') root = pathJoin(m.filename, "..", root);
-  return async function (req, res, next) {
+  return async (req, res, next) => {
     if (req.method !== 'GET') return await next();
     let path = pathJoin(root, req.pathname);
-    let data = await new Promise(function (resolve, reject) {
+    let data = await new Promise((resolve, reject) => {
       readFileNode(path, onRead);
       function onRead(err, data) {
         if (err) {
@@ -301,7 +301,7 @@ function files(root) {
 
 exports.websocket = websocket;
 function websocket(onSocket) {
-  return async function (req, res, next) {
+  return async (req, res, next) => {
 
     // WebSocket connections must be GET requests
     if (req.method !== "GET") return await next();
