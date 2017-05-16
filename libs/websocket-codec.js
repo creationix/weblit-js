@@ -31,45 +31,47 @@ function applyMask (data, mask) {
 }
 
 exports.decode = decode
-function decode (chunk) {
+function decode (chunk, offset) {
   let out
-  while ((out = decodeRaw(chunk))) {
-    let [frame, extra] = out
-    if (frame.opcode === 1 || frame.opcode === 2) return [frame.payload, extra]
-    if (!extra) return
-    chunk = extra
+  while ((out = decodeRaw(chunk, offset))) {
+    let frame = out[0]
+    offset = out[1]
+    if (frame.opcode === 1 || frame.opcode === 2) return [frame.payload, offset]
+    if (chunk.length <= offset) return
   }
 }
 
 exports.decodeRaw = decodeRaw
-function decodeRaw (chunk) {
+function decodeRaw (chunk, offset) {
   if (!chunk) return
-  if (chunk.length < 2) return
-  let len = chunk[1] & 0x7f
-  let offset
+  let length = chunk.length - offset
+  if (length < 2) return
+  let first = chunk[offset]
+  let bits = chunk[offset + 1]
+  let len = bits & 0x7f
   if (len === 126) {
-    if (chunk.length < 4) return
-    len = (chunk[2] << 8) | chunk[3]
-    offset = 4
+    if (length < 4) return
+    len = (chunk[offset + 2] << 8) | chunk[offset + 3]
+    offset += 4
   } else if (len === 127) {
-    if (chunk.length < 10) return
+    if (length < 10) return
     len = ((
-      (chunk[2] << 24) |
-      (chunk[3] << 16) |
-      (chunk[4] << 8) |
-      chunk[5]
+      (chunk[offset + 2] << 24) |
+      (chunk[offset + 3] << 16) |
+      (chunk[offset + 4] << 8) |
+      chunk[offset + 5]
     ) >>> 0) * 0x100000000 +
     ((
-      (chunk[6] << 24) |
-      (chunk[7] << 16) |
-      (chunk[8] << 8) |
-      chunk[9]
+      (chunk[offset + 6] << 24) |
+      (chunk[offset + 7] << 16) |
+      (chunk[offset + 8] << 8) |
+      chunk[offset + 9]
     ) >>> 0)
-    offset = 10
+    offset += 10
   } else {
-    offset = 2
+    offset += 2
   }
-  let mask = (chunk[1] & 0x80) > 0
+  let mask = (bits & 0x80) > 0
   if (mask) {
     offset += 4
   }
@@ -78,18 +80,18 @@ function decodeRaw (chunk) {
   let payload = chunk.slice(offset, offset + len)
   assert(payload.length === len, 'Length mismatch')
   if (mask) payload = applyMask(payload, chunk.slice(offset - 4, offset))
-  let opcode = (chunk[0] & 0xf)
+  let opcode = (first & 0xf)
   if (opcode === 1) {
     payload = binToStr(payload)
   }
 
   return [{
-    fin: (chunk[0] & 0x80) > 0,
+    fin: (first & 0x80) > 0,
     opcode: opcode,
     mask: !!mask,
     len: len,
     payload: payload
-  }, chunk.slice(offset + len)]
+  }, offset + len]
 }
 
 exports.encode = encode

@@ -1,5 +1,5 @@
 
-let { Server, autoHeaders, logger, files } = require('./libs/weblit')
+let { Server, autoHeaders, logger, files, websocket } = require('./libs/weblit')
 
 console.log(Server)
 
@@ -19,4 +19,17 @@ new Server()
     res.code = 200
     res.headers.set('Content-Type', 'text/html')
   })
+
+  .route({
+    path: '/socket/:param'
+  }, websocket(async (req, read, write) => {
+    console.log('Websocket', req)
+    let message
+    while ((message = await read())) {
+      console.log('MESSAGE', message)
+      write(message)
+    }
+    write()
+  }))
+
   .start()

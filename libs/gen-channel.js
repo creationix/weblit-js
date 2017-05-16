@@ -52,12 +52,12 @@ function makeRead (socket, decode) {
     let out
     let offset = 0
     while ((out = decode(buffer, offset))) {
-      console.log('OUT', out)
+      // console.log('OUT', out)
       offset = out[1]
       onValue(out[0])
     }
     buffer = buffer && buffer.length > offset ? buffer.slice(offset) : null
-    console.log('Done parsing')
+    // console.log('Done parsing')
   }
 
   function onValue (value) {
