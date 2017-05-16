@@ -1,110 +1,106 @@
-/*global Buffer*/
-let { flatten } = require('./bintools');
+/* global Buffer */
+let { flatten } = require('./bintools')
 
-exports.makeRead = makeRead;
-function makeRead(socket, decode) {
-
+exports.makeRead = makeRead
+function makeRead (socket, decode) {
   // If writer > reader, there is data to be read.
   // if reader > writer, there is data required.
-  let queue = [];
-  let reader = 0, writer = 0;
+  let queue = []
+  let reader = 0
+  let writer = 0
 
   // null = not started, true = flowing, false = paused
-  let state = null;
+  let state = null
 
   // buffer to store leftover data between decoder calls.
-  let buffer;
+  let buffer
 
-  let concat = decode.concat || defaultConcat;
+  let concat = decode.concat || defaultConcat
 
-  function read() {
+  function read () {
     // If there is pending data, return it right away.
-    if (writer > reader) return queue[reader++];
+    if (writer > reader) return queue[reader++]
 
     // Make sure the data is flowing since we need it.
     if (state === null) {
-      state = true;
+      state = true
       // console.log("Starting");
-      socket.on('data', onData);
-      socket.on('end', onData);
-    }
-    else if (state === false) {
-      state = true;
+      socket.on('data', onData)
+      socket.on('end', onData)
+    } else if (state === false) {
+      state = true
       // console.log("Resuming");
-      socket.resume();
+      socket.resume()
     }
 
     // Wait for the data or a parse error.
     return new Promise(function (resolve) {
-      queue[reader++] = resolve;
-    });
+      queue[reader++] = resolve
+    })
   }
 
   read.updateDecode = (newDecode) => {
-    decode = newDecode;
-    concat = decode.concat || defaultConcat;
-  };
+    decode = newDecode
+    concat = decode.concat || defaultConcat
+  }
 
-  return read;
+  return read
 
-  function onData(chunk) {
+  function onData (chunk) {
     // Convert node buffer to portable Uint8Array
-    if (chunk) chunk = new Uint8Array(chunk);
-    if (!decode) { onValue(chunk); return; }
-    buffer = concat(buffer, chunk);
-    let out;
+    if (chunk) chunk = new Uint8Array(chunk)
+    if (!decode) { onValue(chunk); return }
+    buffer = concat(buffer, chunk)
+    let out
     while ((out = decode(buffer))) {
       // console.log("OUT", out);
-      buffer = out[1];
-      onValue(out[0]);
+      buffer = out[1]
+      onValue(out[0])
     }
     // console.log("Done parsing");
   }
 
-  function onValue(value) {
+  function onValue (value) {
     // console.log("<-", value);
     // If there is a pending writer, give it the data right away.
     if (reader > writer) {
-      queue[writer++](value);
-      return;
+      queue[writer++](value)
+      return
     }
 
     // Pause the read stream if we're buffering data already.
     if (state && writer > reader) {
-      state = false;
+      state = false
       // console.log("Pausing");
-      socket.pause();
+      socket.pause()
     }
 
-    queue[writer++] = value;
+    queue[writer++] = value
   }
 }
 
-exports.makeWrite = makeWrite;
-function makeWrite(socket, encode) {
-
-  function write(value) {
+exports.makeWrite = makeWrite
+function makeWrite (socket, encode) {
+  function write (value) {
     // console.log("->", value);
-    if (encode) value = encode(value);
+    if (encode) value = encode(value)
     return new Promise((resolve, reject) => {
-      if (value) socket.write(new Buffer(value), check);
-      else socket.end(check);
-      function check(err) {
-        if (err) return reject(err);
-        return resolve();
+      if (value) socket.write(new Buffer(value), check)
+      else socket.end(check)
+      function check (err) {
+        if (err) return reject(err)
+        return resolve()
       }
-    });
+    })
   }
 
   write.updateEncode = function (newEncode) {
-    encode = newEncode;
-  };
+    encode = newEncode
+  }
 
-  return write;
-
-
+  return write
 }
 
-function defaultConcat(buffer, chunk) {
-  return (buffer && buffer.length) ? flatten([buffer, chunk]) : chunk;
+function defaultConcat (buffer, chunk) {
+  return (buffer && buffer.length) ? flatten([buffer, chunk]) : chunk
 }
