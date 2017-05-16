@@ -1,4 +1,4 @@
-let { indexOf, binToRaw } = require('./bintools')
+let { indexOf, binToRaw, Binary } = require('./bintools')
 let { assert } = require('./assert')
 
 module.exports = { encoder, decoder }
@@ -141,37 +141,41 @@ function decoder () {
   let bytesLeft // For counted decoder
 
   // This state is for decoding the status line and headers.
-  function decodeHead (chunk) {
-    if (!chunk) return
+  function decodeHead (chunk, offset) {
+    if (!chunk || chunk.length <= offset) return
 
-    let index = indexOf(chunk, '\r\n\r\n')
     // First make sure we have all the head before continuing
+    let index = indexOf(chunk, '\r\n\r\n', offset)
     if (index < 0) {
-      if (chunk.length < 8 * 1024) return
+      if ((chunk.length - offset) < 8 * 1024) return
       // But protect against evil clients by refusing heads over 8K long.
       throw new Error('entity too large')
     }
-    let tail = chunk.slice(index + 4)
+    // Remember where the head ended and the body started
+    let bodyStart = index + 4
 
     // Parse the status/request line
     let head = {}
 
-    index = indexOf(chunk, '\n') + 1
-    let line = binToRaw(chunk, 0, index)
+    index = indexOf(chunk, '\n', offset) + 1
+    let line = binToRaw(chunk, offset, index)
     let match = line.match(/^HTTP\/(\d\.\d) (\d+) ([^\r\n]+)/)
+    let version
     if (match) {
-      head.code = parseInt(match[2])
+      version = match[1]
+      head.code = parseInt(match[2], 10)
       head.reason = match[3]
     } else {
       match = line.match(/^([A-Z]+) ([^ ]+) HTTP\/(\d\.\d)/)
       if (match) {
         head.method = match[1]
         head.path = match[2]
+        version = match[3]
       } else {
         throw new Error('expected HTTP data')
       }
     }
-    head.version = parseFloat(match[3])
+    head.version = parseFloat(version)
     head.keepAlive = head.version > 1.0
 
     // We need to inspect some headers to know how to parse the body.
@@ -185,10 +189,12 @@ function decoder () {
       line = binToRaw(chunk, start, index)
       if (line === '\r\n') break
       start = index
-      let [match, key, value] = line.match(/^([^:\r\n]+): *([^\r\n]+)/)
+      let match = line.match(/^([^:\r\n]+): *([^\r\n]+)/)
       if (!match) {
         throw new Error('Malformed HTTP header: ' + line)
       }
+      let key = match[1]
+      let value = match[2]
       let lowerKey = key.toLowerCase()
 
       // Inspect a few headers and remember the values
@@ -203,10 +209,9 @@ function decoder () {
     }
 
     if (head.keepAlive
-      ? !(chunkedEncoding ||
-          (contentLength !== undefined && contentLength > 0)
-        )
-      : (head.method === 'GET' || head.method === 'HEAD')) {
+      ? !(chunkedEncoding || (contentLength !== undefined && contentLength > 0))
+      : (head.method === 'GET' || head.method === 'HEAD')
+    ) {
       mode = decodeEmpty
     } else if (chunkedEncoding) {
       mode = decodeChunked
@@ -216,34 +221,34 @@ function decoder () {
     } else if (!head.keepAlive) {
       mode = decodeRaw
     }
-    return [head, tail]
+    return [head, bodyStart]
   }
 
   // This is used for inserting a single empty string into the output string for known empty bodies
-  function decodeEmpty (chunk) {
+  function decodeEmpty (chunk, offset) {
     mode = decodeHead
-    return [new Uint8Array(0), chunk]
+    return [new Binary(0), offset]
   }
 
-  function decodeRaw (chunk) {
-    if (!chunk) return [new Uint8Array(0)]
+  function decodeRaw (chunk, offset) {
+    if (!chunk || chunk.length >= offset) return [new Binary(0)]
     if (chunk.length === 0) return
-    return [chunk]
+    return [chunk.slice(offset), chunk.length]
   }
 
-  function decodeChunked (chunk) {
+  function decodeChunked (chunk, offset) {
     // Make sure we have at least the length header
-    let index = indexOf(chunk, '\r\n')
+    let index = indexOf(chunk, '\r\n', offset)
     if (index < 0) return
 
     // And parse it
-    let hex = binToRaw(chunk, 0, index)
+    let hex = binToRaw(chunk, offset, index)
     let length = parseInt(hex, 16)
 
     // Wait till we have the rest of the body
     let start = hex.length + 2
     let end = start + length
-    if (chunk.length < end + 2) return
+    if ((chunk.length - offset) < end + 2) return
 
     // An empty chunk means end of stream; reset state.
     if (length === 0) mode = decodeHead
@@ -251,33 +256,33 @@ function decoder () {
     // Make sure the chunk ends in '\r\n'
     assert(binToRaw(chunk, end, end + 2) === '\r\n', 'Invalid chunk tail')
 
-    return [chunk.slice(start, end), chunk.slice(end + 2)]
+    return [chunk.slice(start, end), end + 2]
   }
 
-  function decodeCounted (chunk) {
+  function decodeCounted (chunk, offset) {
     if (bytesLeft === 0) {
       mode = decodeEmpty
       return mode(chunk)
     }
-    let length = chunk.length
+    let length = chunk.length - offset
     // Make sure we have at least one byte to process
-    if (!length) return
+    if (length <= 0) return
 
-    if (length >= bytesLeft) mode = decodeEmpty
+    if (length >= bytesLeft) { mode = decodeEmpty }
 
     // If the entire chunk fits, pass it all through
     if (length <= bytesLeft) {
       bytesLeft -= length
-      return [chunk]
+      return [chunk.slice(offset), chunk.length]
     }
 
-    return [chunk.slice(0, bytesLeft), chunk.slice(bytesLeft + 1)]
+    return [chunk.slice(offset, bytesLeft), offset + bytesLeft + 1]
   }
 
   // Switch between states by changing which decoder mode points to
   mode = decodeHead
-  function decode (chunk) {
-    return mode(chunk)
+  function decode (chunk, offset) {
+    return mode(chunk, offset)
   }
   return decode
 }

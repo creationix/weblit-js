@@ -1,5 +1,4 @@
-let { addInspect } = require('./libs/bintools')
-addInspect()
+
 let { Server, autoHeaders, logger, files } = require('./libs/weblit')
 
 console.log(Server)

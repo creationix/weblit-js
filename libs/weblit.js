@@ -5,7 +5,7 @@ let { parse: urlParse } = require('url')
 let { makeRead, makeWrite } = require('./gen-channel')
 let { decoder, encoder } = require('./http-codec')
 let { encode, decode, acceptKey } = require('./websocket-codec')
-let { flatten, isUTF8 } = require('./bintools')
+let { flatten, isUTF8, Binary } = require('./bintools')
 let { sha1 } = require('./sha1')
 let { readFile: readFileNode } = require('fs')
 let { guess } = require('./mime')
@@ -288,7 +288,7 @@ function files (root) {
           }
           return reject(err)
         }
-        return resolve(new Uint8Array(data))
+        return resolve(new Binary(data))
       }
     })
     if (!data) return await next()

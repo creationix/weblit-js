@@ -47,17 +47,17 @@ function makeRead (socket, decode) {
   return read
 
   function onData (chunk) {
-    // Convert node buffer to portable Uint8Array
-    if (chunk) chunk = new Uint8Array(chunk)
     if (!decode) { onValue(chunk); return }
     buffer = concat(buffer, chunk)
     let out
-    while ((out = decode(buffer))) {
-      // console.log("OUT", out);
-      buffer = out[1]
+    let offset = 0
+    while ((out = decode(buffer, offset))) {
+      console.log('OUT', out)
+      offset = out[1]
       onValue(out[0])
     }
-    // console.log("Done parsing");
+    buffer = buffer && buffer.length > offset ? buffer.slice(offset) : null
+    console.log('Done parsing')
   }
 
   function onValue (value) {

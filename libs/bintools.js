@@ -1,36 +1,26 @@
-exports.addInspect = addInspect
-function addInspect () {
-  // Make working with Uint8Array less painful in node.js
-  Object.defineProperty(Uint8Array.prototype, 'inspect', {value: function () {
-    let str = ''
-    for (let i = 0; i < this.length; i++) {
-      if (i >= 50) { str += '...'; break }
-      str += (this[i] < 0x10 ? ' 0' : ' ') + this[i].toString(16)
-    }
-    return '<Uint8Array' + str + '>'
-  }})
-}
 
 // TYPES:
-//   bin - a Uint8Array containing binary data.
+//   bin - a Uint8Array in browser or node Buffer containing binary data.
 //   str - a normal unicode string.
 //   raw - a string where each character's charCode is a byte value. (utf-8)
 //   hex - a string holding binary data as lowercase hexadecimal.
 //   b64 - a string holding binary data in base64 encoding.
 
+let Binary = exports.Binary = typeof Buffer === 'function' ? Buffer : Uint8Array
+
 exports.isBin = isBin
 function isBin (bin) {
-  return bin instanceof Uint8Array
+  return bin instanceof Binary
 }
 
-// Convert a raw string into a Uint8Array
+// Convert a raw string into a Binary
 exports.rawToBin = rawToBin
 function rawToBin (raw, start, end) {
   raw = '' + raw
   start = start == null ? 0 : start | 0
   end = end == null ? raw.length : end | 0
   let len = end - start
-  let bin = new Uint8Array(len)
+  let bin = new Binary(len)
   for (let i = 0; i < len; i++) {
     bin[i] = raw.charCodeAt(i + start)
   }
@@ -39,7 +29,7 @@ function rawToBin (raw, start, end) {
 
 exports.binToRaw = binToRaw
 function binToRaw (bin, start, end) {
-  if (!(bin instanceof Uint8Array)) bin = new Uint8Array(bin)
+  if (!(bin instanceof Binary)) bin = new Binary(bin)
   start = start == null ? 0 : start | 0
   end = end == null ? bin.length : end | 0
   let raw = ''
@@ -51,7 +41,7 @@ function binToRaw (bin, start, end) {
 
 exports.binToHex = binToHex
 function binToHex (bin, start, end) {
-  if (!(bin instanceof Uint8Array)) bin = new Uint8Array(bin)
+  if (!(bin instanceof Binary)) bin = new Binary(bin)
   start = start == null ? 0 : start | 0
   end = end == null ? bin.length : end | 0
   let hex = ''
@@ -68,7 +58,7 @@ function hexToBin (hex, start, end) {
   start = start == null ? 0 : start | 0
   end = end == null ? hex.length : end | 0
   let len = (end - start) >> 1
-  let bin = new Uint8Array(len)
+  let bin = new Binary(len)
   let offset = 0
   for (let i = start; i < end; i += 2) {
     bin[offset++] = parseInt(hex.substr(i, 2), 16)
@@ -163,7 +153,7 @@ function b64ToBin (b64) {
     }
     j = j + 3
   }
-  return new Uint8Array(bytes)
+  return new Binary(bytes)
 }
 
 exports.strToBin = strToBin
@@ -236,9 +226,9 @@ function rawToB64 (raw, start, end) {
 //    [[1],2,[3]] -> <01 02 03>
 exports.flatten = flatten
 function flatten (parts) {
-  if (typeof parts === 'number') return new Uint8Array([parts])
-  if (parts instanceof Uint8Array) return parts
-  let buffer = new Uint8Array(count(parts))
+  if (typeof parts === 'number') return new Binary([parts])
+  if (parts instanceof Binary) return parts
+  let buffer = new Binary(count(parts))
   copy(buffer, 0, parts)
   return buffer
 }
@@ -247,8 +237,9 @@ function count (value) {
   if (value == null) return 0
   if (typeof value === 'number') return 1
   if (typeof value === 'string') return value.length
-  if (value instanceof Uint8Array) return value.length
+  if (value instanceof Binary) return value.length
   if (!Array.isArray(value)) {
+    console.log("VALUE", value)
     throw new TypeError('Bad type for flatten: ' + typeof value)
   }
   let sum = 0
@@ -271,7 +262,7 @@ function copy (buffer, offset, value) {
     return offset
   }
   if (value instanceof ArrayBuffer) {
-    value = new Uint8Array(value)
+    value = new Binary(value)
   }
   for (let piece of value) {
     offset = copy(buffer, offset, piece)
