@@ -262,7 +262,7 @@ function decoder () {
   function decodeCounted (chunk, offset) {
     if (bytesLeft === 0) {
       mode = decodeEmpty
-      return mode(chunk)
+      return mode(chunk, offset)
     }
     let length = chunk.length - offset
     // Make sure we have at least one byte to process
