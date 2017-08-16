@@ -250,9 +250,6 @@ async function autoHeaders (req, res, next) {
     if (needLength) {
       headers.set('Content-Length', '' + body.length)
     }
-    if (!headers.has('ETag')) {
-      headers.set('ETag', `"${sha1(body)}"`)
-    }
     if (!headers.has('Content-Type')) {
       headers.set('Content-Type', 'text/plain')
     }
@@ -294,6 +291,7 @@ function files (root) {
     if (!data) return await next()
     res.code = 200
     res.headers.set('Content-Type', guess(path, () => isUTF8(data)))
+    res.headers.set('ETag', `"${sha1(data)}"`)
     res.body = data
   }
 }
