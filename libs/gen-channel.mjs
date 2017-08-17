@@ -1,8 +1,7 @@
-/* global Buffer */
-let { flatten } = require('./bintools')
+import { Buffer } from 'buffer'
+import { flatten } from './bintools'
 
-exports.makeRead = makeRead
-function makeRead (socket, decode) {
+export function makeRead (socket, decode) {
   // If writer > reader, there is data to be read.
   // if reader > writer, there is data required.
   let queue = []
@@ -79,8 +78,7 @@ function makeRead (socket, decode) {
   }
 }
 
-exports.makeWrite = makeWrite
-function makeWrite (socket, encode) {
+export function makeWrite (socket, encode) {
   function write (value) {
     // console.log("->", value);
     if (encode) value = encode(value)

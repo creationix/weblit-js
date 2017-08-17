@@ -1,12 +1,12 @@
 
 let shared = new Uint32Array(80)
-exports.sha1Stream = sha1Stream
-function sha1Stream () {
+
+export function sha1Stream () {
   return create(false)
 }
+
 // Input chunks must be either arrays of bytes or "raw" encoded strings
-exports.sha1 = sha1
-function sha1 (buffer) {
+export function sha1 (buffer) {
   let shasum = create(true)
   shasum.update(buffer)
   return shasum.digest()

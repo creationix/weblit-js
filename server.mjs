@@ -1,5 +1,5 @@
 
-let { Server, autoHeaders, logger, files, websocket } = require('./libs/weblit')
+import { Server, autoHeaders, logger, files, websocket } from './libs/weblit'
 
 console.log(Server)
 

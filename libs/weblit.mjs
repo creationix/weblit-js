@@ -1,18 +1,18 @@
-/* global module */
-let { createServer: createNetServer } = require('net')
-let { request: nodeRequest } = require('https')
-let { parse: urlParse } = require('url')
-let { makeRead, makeWrite } = require('./gen-channel')
-let { decoder, encoder } = require('./http-codec')
-let { encode, decode, acceptKey } = require('./websocket-codec')
-let { flatten, isUTF8, Binary } = require('./bintools')
-let { sha1 } = require('./sha1')
-let { readFile: readFileNode } = require('fs')
-let { guess } = require('./mime')
-let { pathJoin } = require('./pathjoin')
-let { compileRoute, compileGlob, parseQuery } = require('./weblit-tools')
 
-class Headers {
+import { createServer as createNetServer } from 'net'
+import { request as nodeRequest } from 'https'
+import { parse as urlParse } from 'url'
+import { makeRead, makeWrite } from './gen-channel'
+import { decoder, encoder } from './http-codec'
+import { encode, decode, acceptKey } from './websocket-codec'
+import { flatten, isUTF8, Binary } from './bintools'
+import { sha1 } from './sha1'
+import { readFile as readFileNode } from 'fs'
+import { guess } from './mime'
+import { pathJoin } from './pathjoin'
+import { compileRoute, compileGlob, parseQuery } from './weblit-tools'
+
+export class Headers {
   constructor (raw) {
     raw = raw || []
     this.entries = []
@@ -57,7 +57,7 @@ class Headers {
   }
 }
 
-class Request {
+export class Request {
   constructor (head, body) {
     head = head || {}
     this.method = head.method || 'GET'
@@ -77,9 +77,8 @@ class Request {
     }
   }
 }
-exports.Request = Request
 
-class Response {
+export class Response {
 
   constructor (head) {
     head = head || {}
@@ -99,9 +98,8 @@ class Response {
     }
   }
 }
-exports.Response = Response
 
-class Server {
+export class Server {
 
   constructor () {
     this.layers = []
@@ -190,10 +188,8 @@ class Server {
   }
 
 }
-exports.Server = Server
 
-exports.logger = logger
-async function logger (req, res, next) {
+export async function logger (req, res, next) {
   let userAgent = req.headers.get('User-Agent')
 
   // Run all inner layers first.
@@ -206,8 +202,7 @@ async function logger (req, res, next) {
   }
 }
 
-exports.autoHeaders = autoHeaders
-async function autoHeaders (req, res, next) {
+export async function autoHeaders (req, res, next) {
   let isHead = false
   if (req.method === 'HEAD') {
     req.method = 'GET'
@@ -266,8 +261,7 @@ async function autoHeaders (req, res, next) {
   }
 }
 
-exports.files = files
-function files (root) {
+export function files (root) {
   let m = module
   while (m.parent) m = m.parent
   if (root[0] !== '/') root = pathJoin(m.filename, '..', root)
@@ -296,8 +290,7 @@ function files (root) {
   }
 }
 
-exports.websocket = websocket
-function websocket (onSocket) {
+export function websocket (onSocket) {
   return async (req, res, next) => {
     // WebSocket connections must be GET requests
     if (req.method !== 'GET') return await next()
@@ -330,8 +323,7 @@ function websocket (onSocket) {
   }
 }
 
-exports.request = request
-function request (method, url, headers, body) {
+export function request (method, url, headers, body) {
   return new Promise((resolve, reject) => {
     let options = urlParse(url)
     options.method = method

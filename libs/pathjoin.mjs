@@ -1,5 +1,4 @@
-exports.pathJoin = pathJoin
-function pathJoin (base, ...parts) {
+export function pathJoin (base, ...parts) {
   parts = (base + '/' + parts.join('/')).split(/\/+/)
   let i = 0
   while (i < parts.length) {

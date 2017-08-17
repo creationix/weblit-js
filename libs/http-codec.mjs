@@ -1,7 +1,5 @@
-let { indexOf, binToRaw, Binary } = require('./bintools')
-let { assert } = require('./assert')
-
-module.exports = { encoder, decoder }
+import { indexOf, binToRaw, Binary } from './bintools'
+import { assert } from './assert'
 
 let STATUS_CODES = {
   '100': 'Continue',
@@ -58,7 +56,7 @@ let STATUS_CODES = {
   '510': 'Not Extended'                // RFC 2774
 }
 
-function encoder () {
+export function encoder () {
   let mode
 
   function encodeHead (item) {
@@ -135,7 +133,7 @@ function encoder () {
   return encode
 }
 
-function decoder () {
+export function decoder () {
   // This decoder is somewhat stateful with 5 different parsing states.
   let mode // state variable that points to various decoders
   let bytesLeft // For counted decoder

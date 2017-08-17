@@ -1,0 +1,11 @@
+{
+  "name": "weblit-js",
+  "version": "0.0.0",
+  "main": "server.mjs",
+  "@std/esm": {
+    "cjs": true
+  },
+  "devDependencies": {
+    "@std/esm": "^0.5.0"
+  }
+}
