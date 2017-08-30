@@ -11,6 +11,7 @@ import { readFile as readFileNode } from 'fs'
 import { guess } from './mime'
 import { pathJoin } from './pathjoin'
 import { compileRoute, compileGlob, parseQuery } from './weblit-tools'
+import { gzip } from 'zlib'
 
 export class Headers {
   constructor (raw) {
@@ -258,6 +259,23 @@ export async function autoHeaders (req, res, next) {
 
   if (isHead) {
     res.body = null
+  }
+}
+
+export function gzipBody () {
+  return async (req, res, next) => {
+    if (!req.headers.get('Accept-Encoding').match(/gzip/)) return next()
+
+    await next()
+
+    if (res.body) {
+      res.body = await new Promise((resolve, reject) => {
+        gzip(res.body, function (err, value) {
+          err ? reject(err) : resolve(value)
+        })
+      })
+      res.headers.set('Content-Encoding', 'gzip')
+    }
   }
 }
 
