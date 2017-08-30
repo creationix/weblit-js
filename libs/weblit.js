@@ -264,7 +264,8 @@ export async function autoHeaders (req, res, next) {
 
 export function gzipBody () {
   return async (req, res, next) => {
-    if (!req.headers.get('Accept-Encoding').match(/gzip/)) return next()
+    let accept = req.headers.get('Accept-Encoding') || ''
+    if (!accept.match(/gzip/)) return next()
 
     await next()
 
