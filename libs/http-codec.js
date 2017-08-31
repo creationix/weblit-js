@@ -262,6 +262,7 @@ export function decoder () {
       mode = decodeEmpty
       return mode(chunk, offset)
     }
+    if (!chunk) return
     let length = chunk.length - offset
     // Make sure we have at least one byte to process
     if (length <= 0) return

@@ -161,7 +161,8 @@ export class Server {
         await this.runLayer(0, req, res)
       } catch (err) {
         res.code = 500
-        res.body = err.stack
+        res.body = err.stack || err
+        console.error(err.stack || err)
       }
 
       write(res.raw)
@@ -276,6 +277,7 @@ export function gzipBody () {
         })
       })
       res.headers.set('Content-Encoding', 'gzip')
+      res.headers.set('Content-Length', res.body.length)
     }
   }
 }
