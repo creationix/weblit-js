@@ -178,7 +178,7 @@ export class Server {
       write('')
       if (!chunk) break
     }
-    socket.close()
+    socket.end()
   }
   async runLayer (index, req, res) {
     let layer = this.layers[index]

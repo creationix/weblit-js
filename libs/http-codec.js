@@ -164,7 +164,7 @@ export function decoder () {
       head.code = parseInt(match[2], 10)
       head.reason = match[3]
     } else {
-      match = line.match(/^([A-Z]+) ([^ ]+) HTTP\/(\d\.\d)/)
+      match = line.match(/^([A-Z]+) (.+) HTTP\/(\d\.\d)/)
       if (match) {
         head.method = match[1]
         head.path = match[2]

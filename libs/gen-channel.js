@@ -46,17 +46,22 @@ export function makeRead (socket, decode) {
   return read
 
   function onData (chunk) {
-    if (!decode) { onValue(chunk); return }
-    buffer = concat(buffer, chunk)
-    let out
-    let offset = 0
-    while ((out = decode(buffer, offset))) {
-      // console.log('OUT', out)
-      offset = out[1]
-      onValue(out[0])
+    try {
+      if (!decode) { onValue(chunk); return }
+      buffer = concat(buffer, chunk)
+      let out
+      let offset = 0
+      while ((out = decode(buffer, offset))) {
+        // console.log('OUT', out)
+        offset = out[1]
+        onValue(out[0])
+      }
+      buffer = buffer && buffer.length > offset ? buffer.slice(offset) : null
+      // console.log('Done parsing')
+    } catch (err) {
+      console.error(err.stack || err)
+      onValue()
     }
-    buffer = buffer && buffer.length > offset ? buffer.slice(offset) : null
-    // console.log('Done parsing')
   }
 
   function onValue (value) {
