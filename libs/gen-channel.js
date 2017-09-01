@@ -26,6 +26,7 @@ export function makeRead (socket, decode) {
       // console.log("Starting");
       socket.on('data', onData)
       socket.on('end', onData)
+      socket.on('error', onError)
     } else if (state === false) {
       state = true
       // console.log("Resuming");
@@ -44,6 +45,11 @@ export function makeRead (socket, decode) {
   }
 
   return read
+
+  function onError (err) {
+    console.error(err)
+    onValue()
+  }
 
   function onData (chunk) {
     try {
