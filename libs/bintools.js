@@ -6,30 +6,40 @@
 //   hex - a string holding binary data as lowercase hexadecimal.
 //   b64 - a string holding binary data in base64 encoding.
 
-let Binary = exports.Binary = typeof Buffer === 'function' ? Buffer : Uint8Array
-
-exports.isBin = isBin
-function isBin (bin) {
-  return bin instanceof Binary
+/**
+ * @param {any} bin
+ * @returns {boolean}
+ */
+export function isBin (bin) {
+  return bin instanceof Uint8Array
 }
 
-// Convert a raw string into a Binary
-exports.rawToBin = rawToBin
-function rawToBin (raw, start, end) {
+/**
+ * @param {string} raw
+ * @param {number} start
+ * @param {number} end
+ * @returns {Uint8Array}
+ */
+export function rawToBin (raw, start, end) {
   raw = '' + raw
   start = start == null ? 0 : start | 0
   end = end == null ? raw.length : end | 0
   let len = end - start
-  let bin = new Binary(len)
+  let bin = new Uint8Array(len)
   for (let i = 0; i < len; i++) {
     bin[i] = raw.charCodeAt(i + start)
   }
   return bin
 }
 
-exports.binToRaw = binToRaw
-function binToRaw (bin, start, end) {
-  if (!(bin instanceof Binary)) bin = new Binary(bin)
+/**
+ * @param {Uint8Array} bin
+ * @param {number} start
+ * @param {number} end
+ * @returns {string}
+ */
+export function binToRaw (bin, start, end) {
+  if (!(bin instanceof Uint8Array)) bin = new Uint8Array(bin)
   start = start == null ? 0 : start | 0
   end = end == null ? bin.length : end | 0
   let raw = ''
@@ -39,9 +49,14 @@ function binToRaw (bin, start, end) {
   return raw
 }
 
-exports.binToHex = binToHex
-function binToHex (bin, start, end) {
-  if (!(bin instanceof Binary)) bin = new Binary(bin)
+/**
+ * @param {Uint8Array} bin
+ * @param {number} start
+ * @param {number} end
+ * @returns {string}
+ */
+export function binToHex (bin, start, end) {
+  if (!(bin instanceof Uint8Array)) bin = new Uint8Array(bin)
   start = start == null ? 0 : start | 0
   end = end == null ? bin.length : end | 0
   let hex = ''
@@ -52,13 +67,18 @@ function binToHex (bin, start, end) {
   return hex
 }
 
-exports.hexToBin = hexToBin
-function hexToBin (hex, start, end) {
+/**
+ * @param {string} hex
+ * @param {number} start
+ * @param {number} end
+ * @returns {Uint8Array}
+ */
+export function hexToBin (hex, start, end) {
   hex = '' + hex
   start = start == null ? 0 : start | 0
   end = end == null ? hex.length : end | 0
   let len = (end - start) >> 1
-  let bin = new Binary(len)
+  let bin = new Uint8Array(len)
   let offset = 0
   for (let i = start; i < end; i += 2) {
     bin[offset++] = parseInt(hex.substr(i, 2), 16)
@@ -66,13 +86,19 @@ function hexToBin (hex, start, end) {
   return bin
 }
 
-exports.strToRaw = strToRaw
-function strToRaw (str) {
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function strToRaw (str) {
   return unescape(encodeURIComponent(str))
 }
 
-exports.rawToStr = rawToStr
-function rawToStr (raw) {
+/**
+ * @param {string} raw
+ * @returns {string}
+ */
+export function rawToStr (raw) {
   return decodeURIComponent(escape(raw))
 }
 
@@ -96,8 +122,11 @@ function getMap () {
 // aaaaaa aabbbb bbbbcc cccccc
 // if there is no c, then pad the 4th with =
 // if there is also no b then pad the 3rd with =
-exports.binToB64 = binToB64
-function binToB64 (bin) {
+/**
+ * @param {Uint8Array} bin
+ * @returns {string}
+ */
+export function binToB64 (bin) {
   let b64 = ''
   let codes = getCodes()
   for (let i = 0, l = bin.length; i < l; i += 3) {
@@ -123,8 +152,11 @@ function binToB64 (bin) {
 // aaaaaabb bbbbcccc ccdddddd
 // if d is padding then there is no 3rd byte
 // if c is padding then there is no 2nd byte
-exports.b64ToBin = b64ToBin
-function b64ToBin (b64) {
+/**
+ * @param {string} b64
+ * @returns {Uint8Array}
+ */
+export function b64ToBin (b64) {
   let map = getMap()
   let bytes = []
   let j = 0
@@ -153,66 +185,108 @@ function b64ToBin (b64) {
     }
     j = j + 3
   }
-  return new Binary(bytes)
+  return new Uint8Array(bytes)
 }
 
-exports.strToBin = strToBin
-function strToBin (str) {
+/**
+ * @param {string} str
+ * @returns {Uint8Array}
+ */
+export function strToBin (str) {
   return rawToBin(strToRaw(str))
 }
 
-exports.binToStr = binToStr
-function binToStr (bin, start, end) {
+/**
+ * @param {Uint8Array} bin
+ * @param {number} [start]
+ * @param {number} [end]
+ * @returns {string}
+ */
+export function binToStr (bin, start, end) {
   return rawToStr(binToRaw(bin, start, end))
 }
 
-exports.rawToHex = rawToHex
-function rawToHex (raw, start, end) {
+/**
+ * @param {string} raw
+ * @param {number} start
+ * @param {number} end
+ * @returns {string}
+ */
+export function rawToHex (raw, start, end) {
   return binToHex(rawToBin(raw, start, end))
 }
 
-exports.hexToRaw = hexToRaw
-function hexToRaw (hex) {
+/**
+ * @param {string} hex
+ * @returns {string}
+ */
+export function hexToRaw (hex) {
   return binToRaw(hexToBin(hex))
 }
 
-exports.strToHex = strToHex
-function strToHex (str) {
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function strToHex (str) {
   return binToHex(strToBin(str))
 }
 
-exports.hexToStr = hexToStr
-function hexToStr (hex) {
+/**
+ * @param {string} hex
+ * @returns {string}
+ */
+export function hexToStr (hex) {
   return binToStr(hexToBin(hex))
 }
 
-exports.b64ToStr = b64ToStr
-function b64ToStr (b64) {
+/**
+ * @param {string} b64
+ * @returns {string}
+ */
+export function b64ToStr (b64) {
   return binToStr(b64ToBin(b64))
 }
 
-exports.strToB64 = strToB64
-function strToB64 (str) {
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+export function strToB64 (str) {
   return binToB64(strToBin(str))
 }
 
-exports.b64ToHex = b64ToHex
-function b64ToHex (b64) {
+/**
+ * @param {string} b64
+ * @returns {string}
+ */
+export function b64ToHex (b64) {
   return binToHex(b64ToBin(b64))
 }
 
-exports.hexToB64 = hexToB64
-function hexToB64 (hex) {
+/**
+ * @param {string} hex
+ * @returns {string}
+ */
+export function hexToB64 (hex) {
   return binToB64(hexToBin(hex))
 }
 
-exports.b64ToRaw = b64ToRaw
-function b64ToRaw (b64) {
+/**
+ * @param {string} b64
+ * @returns {string}
+ */
+export function b64ToRaw (b64) {
   return binToRaw(b64ToBin(b64))
 }
 
-exports.rawToB64 = rawToB64
-function rawToB64 (raw, start, end) {
+/**
+ * @param {string} raw
+ * @param {number} start
+ * @param {number} end
+ * @returns {string}
+ */
+export function rawToB64 (raw, start, end) {
   return binToB64(rawToBin(raw, start, end))
 }
 
@@ -224,11 +298,14 @@ function rawToB64 (raw, start, end) {
 //    "Hi"        -> <48 69>
 //    [1, "Hi"]   -> <01 48 69>
 //    [[1],2,[3]] -> <01 02 03>
-exports.flatten = flatten
-function flatten (parts) {
-  if (typeof parts === 'number') return new Binary([parts])
-  if (parts instanceof Binary) return parts
-  let buffer = new Binary(count(parts))
+/**
+ * @param {any} parts
+ * @returns {Uint8Array}
+ */
+export function flatten (parts) {
+  if (typeof parts === 'number') return new Uint8Array([parts])
+  if (parts instanceof Uint8Array) return parts
+  let buffer = new Uint8Array(count(parts))
   copy(buffer, 0, parts)
   return buffer
 }
@@ -237,9 +314,9 @@ function count (value) {
   if (value == null) return 0
   if (typeof value === 'number') return 1
   if (typeof value === 'string') return value.length
-  if (value instanceof Binary) return value.length
+  if (value instanceof Uint8Array) return value.length
   if (!Array.isArray(value)) {
-    console.log("VALUE", value)
+    console.log('VALUE', value)
     throw new TypeError('Bad type for flatten: ' + typeof value)
   }
   let sum = 0
@@ -262,7 +339,7 @@ function copy (buffer, offset, value) {
     return offset
   }
   if (value instanceof ArrayBuffer) {
-    value = new Binary(value)
+    value = new Uint8Array(value)
   }
   for (let piece of value) {
     offset = copy(buffer, offset, piece)
@@ -270,11 +347,18 @@ function copy (buffer, offset, value) {
   return offset
 }
 
-// indexOf for arrays/buffers.  Raw is a string in raw encoding.
-// returns -1 when not found.
-// start and end are indexes into buffer.  Default is 0 and length.
-exports.indexOf = indexOf
-function indexOf (bin, raw, start, end) {
+/**
+ * indexOf for arrays/buffers.  Raw is a string in raw encoding.
+ * returns -1 when not found.
+ * start and end are indexes into buffer.  Default is 0 and length.
+ * @param {Uint8Array} bin
+ * @param {string} raw
+ * @param {number} start
+ * @param {number} end
+ * @returns {number}
+ */
+export function indexOf (bin, raw, start, end) {
+  /* eslint-disable no-labels */
   start = start == null ? 0 : start | 0
   end = end == null ? bin.length : end | 0
   outer: for (let i = start || 0; i < end; i++) {
@@ -288,21 +372,31 @@ function indexOf (bin, raw, start, end) {
   return -1
 }
 
-exports.uint8 = uint8
-function uint8 (num) {
+/**
+ * @param {number} num
+ * @returns {number}
+ */
+export function uint8 (num) {
   return (num >>> 0) & 0xff
 }
 
-exports.uint16 = uint16
-function uint16 (num) {
+/**
+ * @param {number} num
+ * @returns {[number, number]}
+ */
+export function uint16 (num) {
   num = (num >>> 0) & 0xffff
   return [
     num >> 8,
     num & 0xff
   ]
 }
-exports.uint32 = uint32
-function uint32 (num) {
+
+/**
+ * @param {number} num
+ * @returns {[number, number, number, number]}
+ */
+export function uint32 (num) {
   num >>>= 0
   return [
     num >> 24,
@@ -312,12 +406,16 @@ function uint32 (num) {
   ]
 }
 
-exports.uint64 = uint64
-function uint64 (value) {
-  if (value < 0) value += 0x10000000000000000
+/**
+ *
+ * @param {number} num
+ * @returns {[[number, number, number, number],[number, number, number, number]]}
+ */
+export function uint64 (num) {
+  if (num < 0) num += 0x10000000000000000
   return [
-    uint32(value / 0x100000000),
-    uint32(value % 0x100000000)
+    uint32(num / 0x100000000),
+    uint32(num % 0x100000000)
   ]
 }
 
@@ -327,8 +425,11 @@ function uint64 (value) {
 // If the first 4 bit is 1110,that character is 3 byte width and this is the first byte
 // If the first 5 bit is 11110,that character is 4 byte width and this is the first byte
 // If the first 6 bit is 111110,that character is 5 byte width and this is the first byte
-exports.isUTF8 = isUTF8
-function isUTF8 (bin) {
+/**
+ * @param {Uint8Array} bin
+ * @returns {boolean}
+ */
+export function isUTF8 (bin) {
   let i = 0
   let l = bin.length
   while (i < l) {
@@ -342,8 +443,13 @@ function isUTF8 (bin) {
   return i === l
 }
 
-exports.parseOct = parseOct
-function parseOct (bin, start, end) {
+/**
+ * @param {Uint8Array} bin
+ * @param {number} start
+ * @param {number} end
+ * @returns {number}
+ */
+export function parseOct (bin, start, end) {
   let val = 0
   let sign = 1
   if (bin[start] === 0x2d) {
@@ -356,8 +462,13 @@ function parseOct (bin, start, end) {
   return sign * val
 }
 
-exports.parseDec = parseDec
-function parseDec (bin, start, end) {
+/**
+ * @param {Uint8Array} bin
+ * @param {number} start
+ * @param {number} end
+ * @returns {number}
+ */
+export function parseDec (bin, start, end) {
   let val = 0
   let sign = 1
   if (bin[start] === 0x2d) {

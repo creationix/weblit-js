@@ -1,11 +1,10 @@
-let { hexToB64, binToStr, uint16, uint64, flatten } = require('./bintools')
-let { sha1 } = require('./sha1')
-let { assert } = require('./assert')
+import { hexToB64, binToStr, uint16, uint64, flatten } from './bintools.js'
+import { sha1 } from './sha1.js'
+import { assert } from './assert.js'
 
 let websocketGuid = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'
 
-exports.acceptKey = acceptKey
-function acceptKey (key) {
+export function acceptKey (key) {
   return hexToB64(sha1(key + websocketGuid))
 }
 
@@ -30,8 +29,7 @@ function applyMask (data, mask) {
   return masked
 }
 
-exports.decode = decode
-function decode (chunk, offset) {
+export function decode (chunk, offset) {
   let out
   while ((out = decodeRaw(chunk, offset))) {
     let frame = out[0]
@@ -41,8 +39,7 @@ function decode (chunk, offset) {
   }
 }
 
-exports.decodeRaw = decodeRaw
-function decodeRaw (chunk, offset) {
+export function decodeRaw (chunk, offset) {
   if (!chunk) return
   let length = chunk.length - offset
   if (length < 2) return
@@ -61,12 +58,12 @@ function decodeRaw (chunk, offset) {
       (chunk[offset + 4] << 8) |
       chunk[offset + 5]
     ) >>> 0) * 0x100000000 +
-    ((
-      (chunk[offset + 6] << 24) |
-      (chunk[offset + 7] << 16) |
-      (chunk[offset + 8] << 8) |
-      chunk[offset + 9]
-    ) >>> 0)
+      ((
+        (chunk[offset + 6] << 24) |
+        (chunk[offset + 7] << 16) |
+        (chunk[offset + 8] << 8) |
+        chunk[offset + 9]
+      ) >>> 0)
     offset += 10
   } else {
     offset += 2
@@ -94,8 +91,7 @@ function decodeRaw (chunk, offset) {
   }, offset + len]
 }
 
-exports.encode = encode
-function encode (item) {
+export function encode (item) {
   if (item === undefined) return
   if (typeof item === 'string') {
     return encodeRaw({
@@ -112,8 +108,7 @@ function encode (item) {
   throw new TypeError('Simple Websocket encoder only accepts string and Uint8Array buffers')
 }
 
-exports.encodeRaw = encodeRaw
-function encodeRaw (item) {
+export function encodeRaw (item) {
   if (typeof item === 'string') {
     item = { opcode: 1, payload: item }
   } else if (item.constructor !== Object) {

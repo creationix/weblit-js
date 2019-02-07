@@ -1,12 +1,10 @@
-let { indexOf, binToRaw, Binary } = require('./bintools')
-let { assert } = require('./assert')
+import { indexOf, binToRaw } from './bintools.js'
+import { assert } from './assert.js'
 
-module.exports = { encoder, decoder }
-
-let STATUS_CODES = {
+export let STATUS_CODES = {
   '100': 'Continue',
   '101': 'Switching Protocols',
-  '102': 'Processing',                 // RFC 2518, obsoleted by RFC 4918
+  '102': 'Processing', // RFC 2518, obsoleted by RFC 4918
   '200': 'OK',
   '201': 'Created',
   '202': 'Accepted',
@@ -14,7 +12,7 @@ let STATUS_CODES = {
   '204': 'No Content',
   '205': 'Reset Content',
   '206': 'Partial Content',
-  '207': 'Multi-Status',               // RFC 4918
+  '207': 'Multi-Status', // RFC 4918
   '300': 'Multiple Choices',
   '301': 'Moved Permanently',
   '302': 'Moved Temporarily',
@@ -40,25 +38,25 @@ let STATUS_CODES = {
   '415': 'Unsupported Media Type',
   '416': 'Requested Range Not Satisfiable',
   '417': 'Expectation Failed',
-  '418': "I'm a teapot",               // RFC 2324
-  '422': 'Unprocessable Entity',       // RFC 4918
-  '423': 'Locked',                     // RFC 4918
-  '424': 'Failed Dependency',          // RFC 4918
-  '425': 'Unordered Collection',       // RFC 4918
-  '426': 'Upgrade Required',           // RFC 2817
+  '418': "I'm a teapot", // RFC 2324
+  '422': 'Unprocessable Entity', // RFC 4918
+  '423': 'Locked', // RFC 4918
+  '424': 'Failed Dependency', // RFC 4918
+  '425': 'Unordered Collection', // RFC 4918
+  '426': 'Upgrade Required', // RFC 2817
   '500': 'Internal Server Error',
   '501': 'Not Implemented',
   '502': 'Bad Gateway',
   '503': 'Service Unavailable',
   '504': 'Gateway Time-out',
   '505': 'HTTP Version not supported',
-  '506': 'Variant Also Negotiates',    // RFC 2295
-  '507': 'Insufficient Storage',       // RFC 4918
+  '506': 'Variant Also Negotiates', // RFC 2295
+  '507': 'Insufficient Storage', // RFC 4918
   '509': 'Bandwidth Limit Exceeded',
-  '510': 'Not Extended'                // RFC 2774
+  '510': 'Not Extended' // RFC 2774
 }
 
-function encoder () {
+export function encoder () {
   let mode
 
   function encodeHead (item) {
@@ -74,10 +72,10 @@ function encoder () {
     if (item.method) {
       let path = item.path
       assert(path && path.length > 0, 'expected non-empty path')
-      head = [ item.method + ' ' + item.path + ' HTTP/' + version + '\r\n' ]
+      head = [item.method + ' ' + item.path + ' HTTP/' + version + '\r\n']
     } else {
       let reason = item.reason || STATUS_CODES[item.code]
-      head = [ 'HTTP/' + version + ' ' + item.code + ' ' + reason + '\r\n' ]
+      head = ['HTTP/' + version + ' ' + item.code + ' ' + reason + '\r\n']
     }
     let headers = item.headers
     if (Array.isArray(headers)) {
@@ -100,7 +98,7 @@ function encoder () {
 
     head[head.length] = '\r\n'
 
-    mode = chunkedEncoding && encodeChunked || encodeRaw
+    mode = chunkedEncoding ? encodeChunked : encodeRaw
     return head.join('')
   }
 
@@ -135,7 +133,7 @@ function encoder () {
   return encode
 }
 
-function decoder () {
+export function decoder () {
   // This decoder is somewhat stateful with 5 different parsing states.
   let mode // state variable that points to various decoders
   let bytesLeft // For counted decoder
@@ -227,11 +225,11 @@ function decoder () {
   // This is used for inserting a single empty string into the output string for known empty bodies
   function decodeEmpty (chunk, offset) {
     mode = decodeHead
-    return [new Binary(0), offset]
+    return [new Uint8Array(0), offset]
   }
 
   function decodeRaw (chunk, offset) {
-    if (!chunk || chunk.length >= offset) return [new Binary(0)]
+    if (!chunk || chunk.length >= offset) return [new Uint8Array(0)]
     if (chunk.length === 0) return
     return [chunk.slice(offset), chunk.length]
   }

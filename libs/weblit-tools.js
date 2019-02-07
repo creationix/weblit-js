@@ -1,5 +1,4 @@
-exports.parseQuery = parseQuery
-function parseQuery (query) {
+export function parseQuery (query) {
   let params = {}
   for (let part of query.split('&')) {
     let [match, key, value] = part.match(/^([^=]+)=(.*)$/)
@@ -13,16 +12,14 @@ function escapeRegex (str) {
   return str.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&')
 }
 
-exports.compileGlob = compileGlob
-function compileGlob (glob) {
+export function compileGlob (glob) {
   let reg = new RegExp(glob.split('*').map(escapeRegex).join('.*'))
   return function (string) {
     return reg.test(string)
   }
 }
 
-exports.compileRoute = compileRoute
-function compileRoute (route) {
+export function compileRoute (route) {
   let names = []
   let reg = new RegExp('^' + route.split(/(:[a-z0-9_]+:?)/).map(function (part, i) {
     if (i % 2) {

@@ -1,13 +1,10 @@
 // A simple mime database.
 let types
 
-let defaultBinary = 'application/octet-stream'
-exports.defaultBinary = defaultBinary
-let defaultText = 'text/plain'
-exports.defaultText = defaultText
+export let defaultBinary = 'application/octet-stream'
+export let defaultText = 'text/plain'
 
-exports.guess = guess
-function guess (path, isText) {
+export function guess (path, isText) {
   path = path.toLowerCase().trim()
   var index = path.lastIndexOf('/')
   if (index >= 0) {

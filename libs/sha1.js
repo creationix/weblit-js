@@ -1,12 +1,10 @@
 
 let shared = new Uint32Array(80)
-exports.sha1Stream = sha1Stream
-function sha1Stream () {
+export function sha1Stream () {
   return create(false)
 }
 // Input chunks must be either arrays of bytes or "raw" encoded strings
-exports.sha1 = sha1
-function sha1 (buffer) {
+export function sha1 (buffer) {
   let shasum = create(true)
   shasum.update(buffer)
   return shasum.digest()
@@ -79,10 +77,10 @@ function create (sync) {
 
     // At this point one last processBlock() should trigger and we can pull out the result.
     return toHex(h0) +
-           toHex(h1) +
-           toHex(h2) +
-           toHex(h3) +
-           toHex(h4)
+      toHex(h1) +
+      toHex(h2) +
+      toHex(h3) +
+      toHex(h4)
   }
 
   // We have a full block to process.  Let's do it!
