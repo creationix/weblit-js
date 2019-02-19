@@ -38,7 +38,7 @@ export let STATUS_CODES = {
   '415': 'Unsupported Media Type',
   '416': 'Requested Range Not Satisfiable',
   '417': 'Expectation Failed',
-  '418': "I'm a teapot", // RFC 2324
+  '418': 'I\'m a teapot', // RFC 2324
   '422': 'Unprocessable Entity', // RFC 4918
   '423': 'Locked', // RFC 4918
   '424': 'Failed Dependency', // RFC 4918
@@ -262,7 +262,7 @@ export function decoder () {
       mode = decodeEmpty
       return mode(chunk, offset)
     }
-    let length = chunk.length - offset
+    let length = (chunk && chunk.length) - offset
     // Make sure we have at least one byte to process
     if (length <= 0) return
 
