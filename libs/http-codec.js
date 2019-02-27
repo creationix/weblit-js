@@ -187,7 +187,7 @@ export function decoder () {
       line = binToRaw(chunk, start, index)
       if (line === '\r\n') break
       start = index
-      let match = line.match(/^([^:\r\n]+): *([^\r\n]+)/)
+      let match = line.match(/^([^:\r\n]+): *([^\r\n]*)/)
       if (!match) {
         throw new Error('Malformed HTTP header: ' + line)
       }
