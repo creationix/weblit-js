@@ -17,7 +17,7 @@ export function socketWrap (socket) {
 
   return { read, write, socket, close }
 
-  async function close() {
+  async function close () {
     readClosed = true
     if (!writeClosed) {
       await write()

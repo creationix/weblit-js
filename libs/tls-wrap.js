@@ -40,11 +40,11 @@ export async function tlsWrap ({ read: innerRead, write: innerWrite, close: inne
     }
   }
 
-  async function close() {
+  async function close () {
     if (ssl.shutdown) {
       ssl.shutdown()
     }
-    ssl=null
+    ssl = null
     await innerClose()
   }
 
@@ -79,12 +79,19 @@ export async function tlsWrap ({ read: innerRead, write: innerWrite, close: inne
   }
 
   async function write (data) {
+    let shouldShutdown = false
     if (data) {
       ssl.sslWrite(data)
-      while ((data = ssl.bioRead())) {
-        if (data) await innerWrite(data)
-      }
     } else {
+      shouldShutdown = true
+      if (ssl.shutdown) {
+        ssl.shutdown()
+      }
+    }
+    while ((data = ssl.bioRead())) {
+      if (data) await innerWrite(data)
+    }
+    if (shouldShutdown) {
       await innerWrite()
     }
   }
