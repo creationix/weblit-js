@@ -15,7 +15,16 @@ export function socketWrap (socket) {
   let reader = 0
   let writer = 0
 
-  return { read, write, socket }
+  return { read, write, socket, close }
+
+  async function close() {
+    readClosed = true
+    if (!writeClosed) {
+      await write()
+    } else {
+      check()
+    }
+  }
 
   function check () {
     if (readClosed && writeClosed && !socketClosed) {

@@ -4,7 +4,7 @@ import { assert } from './assert.js'
 // Input read/write
 // read() -> Promise<ArrayBuffer|null>
 // write(ArrayBuffer|null) -> Promise
-export async function tlsWrap ({ read: innerRead, write: innerWrite, ...rest }, hostname) {
+export async function tlsWrap ({ read: innerRead, write: innerWrite, close: innerClose, ...rest }, hostname) {
   assert(innerRead)
   assert(innerWrite)
   read.inner = innerRead
@@ -14,7 +14,7 @@ export async function tlsWrap ({ read: innerRead, write: innerWrite, ...rest }, 
   if (hostname) ssl.setHostname(hostname)
   await handshake()
 
-  return { read, write, ssl, ...rest }
+  return { read, write, close, ...rest }
 
   async function handshake () {
     let status
@@ -38,6 +38,14 @@ export async function tlsWrap ({ read: innerRead, write: innerWrite, ...rest }, 
     if (!ssl.getVerify()) {
       throw new Error('Server certificate verification failure')
     }
+  }
+
+  async function close() {
+    if (ssl.shutdown) {
+      ssl.shutdown()
+    }
+    ssl=null
+    await innerClose()
   }
 
   async function flush () {
