@@ -229,8 +229,7 @@ export function decoder () {
   }
 
   function decodeRaw (chunk, offset) {
-    if (!chunk || chunk.length >= offset) return [new Uint8Array(0)]
-    if (chunk.length === 0) return
+    if (!chunk || chunk.length >= offset || !chunk.length) return;
     return [chunk.slice(offset), chunk.length]
   }
 
