@@ -305,6 +305,7 @@ export function rawToB64 (raw, start, end) {
 export function flatten (parts) {
   if (typeof parts === 'number') return new Uint8Array([parts])
   if (parts instanceof Uint8Array) return parts
+  if (parts instanceof ArrayBuffer) return new Uint8Array(parts)
   let buffer = new Uint8Array(count(parts))
   copy(buffer, 0, parts)
   return buffer
@@ -315,6 +316,7 @@ function count (value) {
   if (typeof value === 'number') return 1
   if (typeof value === 'string') return value.length
   if (value instanceof Uint8Array) return value.length
+  if (value instanceof ArrayBuffer) return value.byteLength
   if (!Array.isArray(value)) {
     console.log('VALUE', value)
     throw new TypeError('Bad type for flatten: ' + typeof value)
