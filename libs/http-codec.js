@@ -243,7 +243,7 @@ export function decoder () {
     let length = parseInt(hex, 16)
 
     // Wait till we have the rest of the body
-    let start = hex.length + 2
+    let start = offset + hex.length + 2
     let end = start + length
     if ((chunk.length - offset) < end + 2) return
 
